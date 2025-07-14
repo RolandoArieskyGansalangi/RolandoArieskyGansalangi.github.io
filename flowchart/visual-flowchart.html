@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Management System - Interactive Flowchart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .flowchart-container {
+            padding: 40px;
+            position: relative;
+        }
+
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .node {
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-align: center;
+            min-width: 200px;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .node:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .start-end {
+            background: linear-gradient(135deg, #e1f5fe, #81d4fa);
+            border: 2px solid #01579b;
+            color: #01579b;
+        }
+
+        .process {
+            background: linear-gradient(135deg, #f3e5f5, #ce93d8);
+            border: 2px solid #4a148c;
+            color: #4a148c;
+        }
+
+        .decision {
+            background: linear-gradient(135deg, #fff3e0, #ffcc02);
+            border: 2px solid #e65100;
+            color: #e65100;
+            border-radius: 50px;
+            transform: rotate(-45deg);
+            min-width: 150px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .decision-content {
+            transform: rotate(45deg);
+            text-align: center;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ffebee, #ef9a9a);
+            border: 2px solid #b71c1c;
+            color: #b71c1c;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #e8f5e8, #a5d6a7);
+            border: 2px solid #2e7d32;
+            color: #2e7d32;
+        }
+
+        .flow-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #3498db;
+            margin: 10px 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .modal p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .modal ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .modal li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+        }
+
+        .flow-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .flowchart-container {
+                padding: 20px;
+            }
+            
+            .node {
+                min-width: 150px;
+                font-size: 14px;
+            }
+            
+            .flow-row {
+                gap: 20px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Asset Management System</h1>
+            <p>Interactive Flowchart - Sistem Manajemen Aset</p>
+        </div>
+
+        <div class="flowchart-container">
+            <div class="controls">
+                <button class="btn" onclick="resetHighlight()">Reset Highlight</button>
+                <button class="btn" onclick="highlightErrorPaths()">Highlight Error Paths</button>
+                <button class="btn" onclick="highlightSuccessPaths()">Highlight Success Paths</button>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #e1f5fe, #81d4fa);"></div>
+                    <span>Start/End</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #f3e5f5, #ce93d8);"></div>
+                    <span>Process</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #fff3e0, #ffcc02);"></div>
+                    <span>Decision</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #ffebee, #ef9a9a);"></div>
+                    <span>Error</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(135deg, #e8f5e8, #a5d6a7);"></div>
+                    <span>Success</span>
+                </div>
+            </div>
+
+            <div class="flowchart">
+                <div class="flow-section">
+                    <div class="section-title">Authentication Flow</div>
+                    <div class="node start-end" onclick="showModal('start')">MULAI</div>
+                    <div class="arrow">↓</div>
+                    <div class="node process" onclick="showModal('login')">HALAMAN LOGIN</div>
+                    <div class="arrow">↓</div>
+                    <div class="node decision" onclick="showModal('validate')">
+                        <div class="decision-content">VALIDASI<br>LOGIN</div>
+                    </div>
+                    <div class="flow-row">
+                        <div style="text-align: center;">
+                            <div style="color: #e74c3c; font-weight: bold;">GAGAL</div>
+                            <div class="arrow">↓</div>
+                            <div class="node error" onclick="showModal('error-login')">PESAN ERROR LOGIN</div>
+                            <div class="arrow">↓</div>
+                            <div style="color: #3498db;">→ Kembali ke LOGIN</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="color: #27ae60; font-weight: bold;">BERHASIL</div>
+                            <div class="arrow">↓</div>
+                            <div class="node process" onclick="showModal('dashboard')">DASHBOARD UTAMA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <div class="section-title">Main Menu</div>
+                    <div class="node process" onclick="showModal('menu')">MENU MANAJEMEN ASET</div>
+                    <div class="arrow">↓</div>
+                    <div class="node decision" onclick="showModal('choose-action')">
+                        <div class="decision-content">PILIH<br>AKSI</div>
+                    </div>
+                    <div class="flow-row">
+                        <div class="node process" onclick="showModal('add-asset')">TAMBAH ASET</div>
+                        <div class="node process" onclick="showModal('export')">EXPORT DATA</div>
+                        <div class="node process" onclick="showModal('scan')">SCAN BARCODE</div>
+                        <div class="node start-end" onclick="showModal('exit')">KELUAR</div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <div class="section-title">Asset Operations</div>
+                    <div class="flow-row">
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold; color: #2c3e50;">Add Asset Flow</div>
+                            <div class="node process" onclick="showModal('form-add')">FORM TAMBAH ASET</div>
+                            <div class="arrow">↓</div>
+                            <div class="node process" onclick="showModal('input-data')">INPUT DATA ASET</div>
+                            <div class="arrow">↓</div>
+                            <div class="node decision" onclick="showModal('validate-data')">
+                                <div class="decision-content">VALIDASI<br>DATA</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-weight: bold; color: #2c3e50;">Edit Asset Flow</div>
+                            <div class="node process" onclick="showModal('form-edit')">FORM EDIT ASET</div>
+                            <div class="arrow">↓</div>
+                            <div class="node process" onclick="showModal('update-data')">UBAH DATA ASET</div>
+                            <div class="arrow">↓</div>
+                            <div class="node success" onclick="showModal('confirm-update')">KONFIRMASI UPDATE</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        const nodeInfo = {
+            'start': {
+                title: 'MULAI',
+                content: `
+                    <p><strong>Deskripsi:</strong> Titik awal dari Asset Management System</p>
+                    <p><strong>Fungsi:</strong></p>
+                    <ul>
+                        <li>Inisialisasi sistem</li>
+                        <li>Load konfigurasi dasar</li>
+                        <li>Persiapan environment</li>
+                    </ul>
+                    <p><strong>Next Step:</strong> Redirect ke halaman login</p>
+                `
+            },
+            'login': {
+                title: 'HALAMAN LOGIN',
+                content: `
+                    <p><strong>Deskripsi:</strong> Interface untuk user authentication</p>
+                    <p><strong>Komponen:</strong></p>
+                    <ul>
+                        <li>Field Username/Email</li>
+                        <li>Field Password</li>
+                        <li>Button Login</li>
+                        <li>Remember Me checkbox</li>
+                        <li>Forgot Password link</li>
+                    </ul>
+                    <p><strong>Validasi:</strong> Client-side validation untuk format email dan password strength</p>
+                `
+            },
+            'validate': {
+                title: 'VALIDASI LOGIN',
+                content: `
+                    <p><strong>Deskripsi:</strong> Proses verifikasi kredensial user</p>
+                    <p><strong>Proses:</strong></p>
+                    <ul>
+                        <li>Cek format email/username</li>
+                        <li>Verify password dengan database</li>
+                        <li>Cek status user (active/inactive)</li>
+                        <li>Generate session token</li>
+                    </ul>
+                    <p><strong>Kemungkinan Output:</strong></p>
+                    <ul>
+                        <li><strong>BERHASIL:</strong> Redirect ke dashboard</li>
+                        <li><strong>GAGAL:</strong> Tampilkan pesan error</li>
+                    </ul>
+                `
+            },
+            'error-login': {
+                title: 'PESAN ERROR LOGIN',
+                content: `
+                    <p><strong>Deskripsi:</strong> Feedback untuk login yang gagal</p>
+                    <p><strong>Jenis Error:</strong></p>
+                    <ul>
+                        <li>Invalid credentials</li>
+                        <li>Account locked</li>
+                        <li>Account inactive</li>
+                        <li>Too many failed attempts</li>
+                    </ul>
+                    <p><strong>Recovery:</strong> User dapat mencoba login lagi atau reset password</p>
+                `
+            },
+            'dashboard': {
+                title: 'DASHBOARD UTAMA',
+                content: `
+                    <p><strong>Deskripsi:</strong> Halaman utama setelah login berhasil</p>
+                    <p><strong>Fitur:</strong></p>
+                    <ul>
+                        <li>Overview statistik aset</li>
+                        <li>Recent activities</li>
+                        <li>Quick actions</li>
+                        <li>User profile menu</li>
+                    </ul>
+                    <p><strong>Navigasi:</strong> Akses ke semua fungsi sistem melalui menu utama</p>
+                `
+            },
+            'menu': {
+                title: 'MENU MANAJEMEN ASET',
+                content: `
+                    <p><strong>Deskripsi:</strong> Menu navigasi untuk fungsi manajemen aset</p>
+                    <p><strong>Opsi Menu:</strong></p>
+                    <ul>
+                        <li><strong>Tambah Aset:</strong> Menambah aset baru</li>
+                        <li><strong>Export Data:</strong> Ekspor data aset</li>
+                        <li><strong>Scan Barcode:</strong> Scan barcode untuk akses cepat</li>
+                        <li><strong>Keluar:</strong> Logout dari sistem</li>
+                    </ul>
+                `
+            },
+            'choose-action': {
+                title: 'PILIH AKSI',
+                content: `
+                    <p><strong>Deskripsi:</strong> Decision point untuk memilih aksi yang akan dilakukan</p>
+                    <p><strong>Pilihan:</strong></p>
+                    <ul>
+                        <li>Tambah Aset Baru</li>
+                        <li>Export Data Aset</li>
+                        <li>Scan Barcode Aset</li>
+                        <li>Keluar dari Sistem</li>
+                    </ul>
+                    <p><strong>Navigasi:</strong> Setiap pilihan menuju ke flow yang berbeda</p>
+                `
+            },
+            'add-asset': {
+                title: 'TAMBAH ASET',
+                content: `
+                    <p><strong>Deskripsi:</strong> Proses penambahan aset baru ke sistem</p>
+                    <p><strong>Langkah:</strong></p>
+                    <ul>
+                        <li>Buka form tambah aset</li>
+                        <li>Input data aset</li>
+                        <li>Validasi data</li>
+                        <li>Simpan ke database</li>
+                        <li>Konfirmasi berhasil</li>
+                    </ul>
+                `
+            },
+            'export': {
+                title: 'EXPORT DATA',
+                content: `
+                    <p><strong>Deskripsi:</strong> Ekspor data aset ke berbagai format</p>
+                    <p><strong>Format Tersedia:</strong></p>
+                    <ul>
+                        <li><strong>Excel:</strong> .xlsx format</li>
+                        <li><strong>PDF:</strong> Formatted report</li>
+                        <li><strong>CSV:</strong> Comma-separated values</li>
+                    </ul>
+                    <p><strong>Proses:</strong> Generate file → Download otomatis</p>
+                `
+            },
+            'scan': {
+                title: 'SCAN BARCODE',
+                content: `
+                    <p><strong>Deskripsi:</strong> Scan barcode untuk akses cepat ke data aset</p>
+                    <p><strong>Proses:</strong></p>
+                    <ul>
+                        <li>Aktifkan kamera</li>
+                        <li>Scan barcode</li>
+                        <li>Validasi barcode</li>
+                        <li>Tampilkan data aset</li>
+                        <li>Pilih aksi (Edit/Delete)</li>
+                    </ul>
+                    <p><strong>Error Handling:</strong> Retry scan jika gagal</p>
+                `
+            },
+            'exit': {
+                title: 'KELUAR',
+                content: `
+                    <p><strong>Deskripsi:</strong> Logout dari sistem</p>
+                    <p><strong>Proses:</strong></p>
+                    <ul>
+                        <li>Destroy session</li>
+                        <li>Clear cookies</li>
+                        <li>Redirect ke halaman login</li>
+                    </ul>
+                    <p><strong>Security:</strong> Ensure complete logout untuk security</p>
+                `
+            }
+        };
+
+        function showModal(nodeId) {
+            const info = nodeInfo[nodeId];
+            if (info) {
+                modalTitle.textContent = info.title;
+                modalBody.innerHTML = info.content;
+                modal.style.display = 'block';
+            }
+        }
+
+        function resetHighlight() {
+            document.querySelectorAll('.node').forEach(node => {
+                node.style.opacity = '1';
+                node.style.transform = 'translateY(0)';
+            });
+        }
+
+        function highlightErrorPaths() {
+            resetHighlight();
+            document.querySelectorAll('.error').forEach(node => {
+                node.style.opacity = '1';
+                node.style.transform = 'translateY(-10px)';
+            });
+            document.querySelectorAll('.node:not(.error)').forEach(node => {
+                node.style.opacity = '0.3';
+            });
+        }
+
+        function highlightSuccessPaths() {
+            resetHighlight();
+            document.querySelectorAll('.success, .process').forEach(node => {
+                node.style.opacity = '1';
+                node.style.transform = 'translateY(-5px)';
+            });
+            document.querySelectorAll('.error').forEach(node => {
+                node.style.opacity = '0.3';
+            });
+        }
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                modal.style.display = 'none';
+            }
+            if (e.key === 'r' || e.key === 'R') {
+                resetHighlight();
+            }
+        });
+    </script>
+</body>
+</html>
